@@ -6,7 +6,7 @@ import imageio
 from tqdm import tqdm
 
 class IsingModel: 
-    def __init__(self, size: int, temperature: float, coupling: float = 1.0, alpha: float = 7.0, lattice: np.ndarray = None, seed = None):
+    def __init__(self, size: int, temperature: float, coupling: float = 1.0, alpha: float = 7.0, lattice: np.ndarray = None, use_metropolis: bool = True, seed = None):
         """
         Initialize the Ising Model (with periodic boundary conditions).
         
@@ -16,6 +16,7 @@ class IsingModel:
             coupling: Coupling constant (J)
             alpha: Minority feedback parameter
             lattice: initial lattice configuration
+            use_metropolis: Metropolis acceptance rule (True) or Bornholdt / heat-bath (Glauber-type) rule (False)
         """
         self.size = size
         self.temperature = temperature
@@ -25,6 +26,7 @@ class IsingModel:
         self.energy = self._calculate_energy()
         self.magnetization = np.sum(self.lattice)
         self.rng     = np.random.default_rng(seed)
+        self.use_metropolis = use_metropolis
         i = np.arange(size)[:, None]
         j = np.arange(size)[None, :]
         self._parity = (i + j) & 1 # parity of each site (trick for latter vectorization)
@@ -49,14 +51,13 @@ class IsingModel:
         local_field = nn_sum - self.alpha * S[i, j] * m   # ← α term
         return -2.0 * self.coupling * S[i, j] * local_field
     
-    def step(self, *, metropolis: bool = True) -> None:
+    def step(self) -> None:
         """
         One checker-board sweep.
 
         Parameters
         ----------
-        metropolis  True  → Metropolis acceptance rule
-                    False → Bornholdt / heat-bath (Glauber-type) rule
+      
         """
         L     = self.size
         beta  = 1.0 / self.temperature
@@ -75,7 +76,7 @@ class IsingModel:
             # ----------------------------------------------------------------
             # 2. choose update rule
             # ----------------------------------------------------------------
-            if metropolis:
+            if self.use_metropolis:
                 # ----- Metropolis -------------------------------------------
                 deltaE = 2.0 * self.coupling * self.lattice * nn_sum   # L×L
                 boltz  = np.exp(-beta * deltaE)
@@ -98,7 +99,7 @@ class IsingModel:
                 self.lattice[mask] = new_s[mask]                       # only this parity
                 self.magnetization = self.lattice.sum(dtype=np.int32) # magnetization needs to be updated between both parities
 
-        # --- update extensive observables (vectorised) ---------------------
+        # --- update extensive observables (vectorised) ---------------------holdt
         self.magnetization = self.lattice.sum(dtype=np.int32)
         self.energy = -self.coupling * (
             (self.lattice * np.roll(self.lattice, 1, 0)).sum(dtype=np.int32) +

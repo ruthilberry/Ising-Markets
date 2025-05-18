@@ -1,0 +1,15 @@
+Statistical Comparison:
+=====================
+
+                      Real Market  Ising Model
+volatility               0.013768     0.001110
+skewness                -0.622621     0.092460
+kurtosis                13.694714     1.131264
+autocorr_returns        -0.171401    -0.505589
+autocorr_abs_returns     0.379397     0.262800
+
+Parameters:
+Temperature: 1.0
+Alpha: 0.0
+Size: 50
+Steps: 10000

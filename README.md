@@ -69,18 +69,90 @@ The logistic rule is often preferred for financial market modeling as it better 
 pip install -r requirements.txt
 ```
 
-## Usage
+## Running the Simulation
 
-Run the main analysis script:
+The simulation can be run by executing `main.py`. The parameters can be configured in the `params` dictionary at the bottom of the file:
+
+```python
+params = {
+    'size': 50,              # Size of the Ising lattice
+    'temperature': 1.0,      # Temperature parameter
+    'steps': 10000,         # Number of simulation steps
+    'alpha': 0.0,           # Alpha parameter
+    'gif_steps': 2000,      # Number of steps for GIF generation
+    'snapshot_interval': 5,  # Interval between snapshots
+    'use_metropolis': True   # Whether to use Metropolis algorithm (True) or Glauber dynamics (False)
+}
+```
+
+To run the simulation:
 ```bash
 python main.py
 ```
 
-This will:
-1. Download S&P 500 data
-2. Run Ising Model simulations
-3. Compare statistical properties
-4. Generate visualization plots
+### Output
+
+The simulation will create a folder in the `results` directory with the following structure:
+```
+results/
+└── run_T{temperature}_alpha{alpha}_{algorithm}_{timestamp}/
+    ├── statistics.txt           # Statistical comparison and parameters
+    ├── magnetization_history.png
+    ├── ising_returns.png
+    ├── comparison_plots.png
+    ├── phase_transition.png
+    ├── ising_evolution_T{temperature}_alpha{alpha}_{algorithm}.gif
+    └── snapshots/              # Individual frames for the GIF
+```
+
+### Parameters Explained
+
+- `size`: The size of the Ising lattice (N×N grid)
+- `temperature`: Controls the thermal fluctuations in the system
+- `steps`: Number of Monte Carlo steps for the main simulation
+- `alpha`: Coupling strength parameter
+- `gif_steps`: Number of steps to record for the GIF animation
+- `snapshot_interval`: How often to save snapshots for the GIF
+- `use_metropolis`: Choose between Metropolis algorithm (True) or Glauber dynamics (False)
+
+### Example Configurations
+
+1. High temperature, Metropolis algorithm:
+```python
+params = {
+    'size': 50,
+    'temperature': 2.0,
+    'steps': 10000,
+    'alpha': 0.0,
+    'gif_steps': 2000,
+    'snapshot_interval': 5,
+    'use_metropolis': True
+}
+```
+
+2. Low temperature, Glauber dynamics:
+```python
+params = {
+    'size': 50,
+    'temperature': 0.5,
+    'steps': 10000,
+    'alpha': 0.0,
+    'gif_steps': 2000,
+    'snapshot_interval': 5,
+    'use_metropolis': False
+}
+```
+
+## Results Analysis
+
+The simulation generates several outputs for analysis:
+1. Statistical comparison between real market data and Ising model
+2. Magnetization history plot
+3. Log returns comparison
+4. Phase transition analysis
+5. GIF animation of the lattice evolution
+
+All results are saved in timestamped folders within the `results` directory, making it easy to compare different parameter configurations.
 
 ## Project Structure
 
