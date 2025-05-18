@@ -31,6 +31,7 @@ def save_statistics(comparison: pd.DataFrame, folder: str, params: dict):
         f.write(f"Alpha: {params['alpha']}\n")
         f.write(f"Size: {params['size']}\n")
         f.write(f"Steps: {params['steps']}\n")
+        f.write(f"Update Mechanism: {'Metropolis' if params['use_metropolis'] else 'Bornholdt'}\n")
 
 def run_simulation(params: dict):
     """Run the Ising model simulation with given parameters."""
@@ -43,7 +44,7 @@ def run_simulation(params: dict):
     print(f"Created output folder: {run_folder}")
     
     # Initialize financial analysis
-    analysis = FinancialAnalysis(symbol="^GSPC", start_date="2020-01-01", output_folder=run_folder)
+    analysis = FinancialAnalysis(symbol="^GSPC", start_date="2020-01-01")
     print("S&P 500 data downloaded.")
     
     # Run Ising simulation
@@ -67,6 +68,7 @@ def run_simulation(params: dict):
     # Plot results
     print("Plotting results...")
     analysis.plot_comparison(ising_returns)
+    analysis.plot_volatility_analysis(ising_returns)
     print("Plots generated.")
     
     # Phase transition analysis
@@ -125,12 +127,12 @@ if __name__ == "__main__":
     # Simulation parameters
     params = {
         'size': 50,              # Size of the Ising lattice
-        'temperature': 1.0,      # Temperature parameter
+        'temperature': 2.2,      # Temperature parameter
         'steps': 10000,         # Number of simulation steps
-        'alpha': 0.0,           # Alpha parameter
+        'alpha': 5,           # Alpha parameter
         'gif_steps': 2000,      # Number of steps for GIF generation
         'snapshot_interval': 5,  # Interval between snapshots
-        'use_metropolis': True      # Whether to use Metropolis algorithm (True) or Bornholdt dynamics (False)
+        'use_metropolis': False      # Whether to use Metropolis algorithm (True) or Bornholdt dynamics (False)
     }
     
     run_simulation(params) 
