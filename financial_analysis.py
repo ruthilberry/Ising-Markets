@@ -5,15 +5,17 @@ from typing import Tuple, List
 import matplotlib.pyplot as plt
 from scipy import stats
 from ising_model import IsingModel
+import os
 
 class FinancialAnalysis:
-    def __init__(self, symbol: str = "^GSPC", start_date: str = "2020-01-01"):
+    def __init__(self, symbol: str = "^GSPC", start_date: str = "2020-01-01", output_folder: str = "figures"):
         """
         Initialize financial analysis for a given symbol.
         
         Args:
             symbol: Stock symbol (default: S&P 500)
             start_date: Start date for analysis
+            output_folder: Folder to save all outputs
         """
         self.symbol = symbol
         self.data = yf.download(symbol, start=start_date)
@@ -22,6 +24,10 @@ class FinancialAnalysis:
             close = close.squeeze()
         # Calculate log returns
         self.returns = np.log(close / close.shift(1)).dropna()
+        
+        # Set output folder
+        self.output_folder = output_folder
+        os.makedirs(output_folder, exist_ok=True)
         
     def calculate_statistics(self) -> dict:
         """Calculate key financial statistics."""
@@ -77,7 +83,8 @@ class FinancialAnalysis:
         plt.xlabel('Step')
         plt.ylabel('Magnetization')
         plt.grid(True)
-        plt.show()
+        plt.savefig(os.path.join(self.output_folder, 'magnetization_history.png'))
+        plt.close()
         
         # Convert magnetization to log returns
         returns = np.log(magnetization_history[1:] / magnetization_history[:-1])
@@ -89,7 +96,8 @@ class FinancialAnalysis:
         plt.xlabel('Step')
         plt.ylabel('Log Returns')
         plt.grid(True)
-        plt.show()
+        plt.savefig(os.path.join(self.output_folder, 'ising_returns.png'))
+        plt.close()
         
         return returns
     
@@ -162,4 +170,5 @@ class FinancialAnalysis:
                 bbox=dict(facecolor='white', alpha=0.8))
         
         plt.tight_layout()
-        plt.show() 
+        plt.savefig(os.path.join(self.output_folder, 'comparison_plots.png'))
+        plt.close() 

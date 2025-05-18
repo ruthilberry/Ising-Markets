@@ -4,16 +4,41 @@ import matplotlib.pyplot as plt
 from ising_model import IsingModel
 import pandas as pd
 from tqdm import tqdm
+import os
+from datetime import datetime
 
-size = 50
-temperature = 100000000000000
-steps = 1000
-alpha = 0
+def create_run_folder(temperature: float, alpha: float) -> str:
+    """Create a folder for this run with parameters in the name."""
+    # Create results directory if it doesn't exist
+    results_dir = "results"
+    os.makedirs(results_dir, exist_ok=True)
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    folder_name = f"run_T{temperature:.2f}_alpha{alpha:.2f}_{timestamp}"
+    full_path = os.path.join(results_dir, folder_name)
+    os.makedirs(full_path, exist_ok=True)
+    return full_path
+
+def save_statistics(comparison: pd.DataFrame, folder: str):
+    """Save statistical comparison to a text file."""
+    with open(os.path.join(folder, 'statistics.txt'), 'w') as f:
+        f.write("Statistical Comparison:\n")
+        f.write("=====================\n\n")
+        f.write(comparison.to_string())
+        f.write("\n\nParameters:\n")
+        f.write(f"Temperature: {temperature}\n")
+        f.write(f"Alpha: {alpha}\n")
+        f.write(f"Size: {size}\n")
+        f.write(f"Steps: {steps}\n")
 
 def main():
     print("Starting financial analysis...")
-    # Initialize financial analysis
-    analysis = FinancialAnalysis(symbol="^GSPC", start_date="2010-01-01")
+    # Create run-specific folder
+    run_folder = create_run_folder(temperature, alpha)
+    print(f"Created output folder: {run_folder}")
+    
+    # Initialize financial analysis with the run folder
+    analysis = FinancialAnalysis(symbol="^GSPC", start_date="2020-01-01", output_folder=run_folder)
     print("S&P 500 data downloaded.")
     
     print("Running Ising simulation for returns...")
@@ -26,6 +51,9 @@ def main():
     comparison = analysis.compare_statistics(ising_returns)
     print("\nStatistical Comparison:")
     print(comparison)
+    
+    # Save statistics to file
+    save_statistics(comparison, run_folder)
     
     # Plot results
     print("Plotting results...")
@@ -48,19 +76,33 @@ def main():
     plt.ylabel('Average Magnetization')
     plt.title('Phase Transition in Ising Model')
     plt.grid(True)
-    plt.show()
+    plt.savefig(os.path.join(run_folder, 'phase_transition.png'))
+    plt.close()
     print("Phase transition analysis completed.")
+    
+    return run_folder
 
-def make_ising_gif():
+def make_ising_gif(run_folder: str):
     print("Starting GIF generation...")
     steps = 2000  # More steps = longer GIF
     snapshot_interval = 5  # Save every 5 steps
 
-    model = IsingModel(size, temperature)
-    model.simulate_with_snapshots(steps, snapshot_dir='snapshots', snapshot_interval=snapshot_interval)
-    IsingModel.create_gif_from_snapshots(snapshot_dir='snapshots', gif_name='ising_evolution.gif', duration=0.1)
-    print("GIF saved as ising_evolution.gif")
+    # Create snapshots directory inside the run folder
+    snapshot_dir = os.path.join(run_folder, 'snapshots')
+    os.makedirs(snapshot_dir, exist_ok=True)
+
+    model = IsingModel(size=size, temperature=temperature, alpha=alpha)
+    model.simulate_with_snapshots(steps, snapshot_dir=snapshot_dir, snapshot_interval=snapshot_interval)
+    gif_name = f'ising_evolution_T{temperature}_alpha{alpha}.gif'
+    IsingModel.create_gif_from_snapshots(snapshot_dir=snapshot_dir, gif_name=os.path.join(run_folder, gif_name), duration=0.1)
+    print(f"GIF saved as '{gif_name}'")
 
 if __name__ == "__main__":
-    main()
-    make_ising_gif() 
+    # Global parameters
+    size = 50
+    temperature = 1
+    steps = 10000
+    alpha = 0.
+    
+    run_folder = main()
+    make_ising_gif(run_folder) 
