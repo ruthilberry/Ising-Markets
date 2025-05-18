@@ -13,6 +13,54 @@ This project implements an Ising Model simulation to analyze financial market be
   - Autocorrelation in returns and absolute returns
 - Phase transition analysis
 
+## Update Mechanism
+The model combines two competing forces that drive the evolution of market agents' states:
+
+### 1. Nearest Neighbor Coupling
+- Each agent (spin) interacts with its immediate neighbors (up, down, left, right)
+- Periodic boundary conditions are used (agents on the edge interact with those on the opposite edge)
+- The coupling strength (J) determines how strongly agents influence each other
+- This force tends to make agents align with their neighbors, representing local market sentiment
+
+### 2. Market Sentiment Force (α)
+- A global force that makes agents more likely to do the opposite of the majority
+- Controlled by the alpha parameter (default: 7.0)
+- The force is proportional to the absolute value of the average magnetization
+- This represents the "contrarian" behavior in markets where agents tend to go against the crowd
+
+### Combined Update Rule
+The total local field acting on an agent at position (x,y) is:
+```
+H(x,y) = J * (sum of neighbor spins) - α * S(x,y) * |average magnetization|
+```
+
+Where:
+- J is the coupling strength
+- α is the market sentiment parameter
+- S(x,y) is the spin at position (x,y)
+- |average magnetization| is the absolute value of the average spin
+
+### Update Rules
+The model supports two different update rules:
+
+1. **Metropolis Algorithm**:
+```
+P(flip) = min(1, exp(-ΔE/T))
+```
+Where:
+- ΔE is the change in energy
+- T is the temperature parameter
+
+2. **Logistic (Bornholdt) Rule**:
+```
+P(flip) = 1 / (1 + exp(2H(x,y)/T))
+```
+Where:
+- H(x,y) is the local field
+- T is the temperature parameter
+
+The logistic rule is often preferred for financial market modeling as it better captures the decision-making process of market participants.
+
 ## Installation
 
 1. Clone this repository
